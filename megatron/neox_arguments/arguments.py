@@ -364,9 +364,7 @@ class NeoXArgs(*BASE_CLASSES):
             default=None,
             help="json dict dumped as string in NeoXArgs.get_deepspeed_main_args()",
         )
-        args_parsed, not_parsed  = parser.parse_known_args()
-        print(f'Parsed arguments: {args_parsed.megatron_config}')
-        print(f'Not Parsed arguments: {not_parsed}')
+        args_parsed, _ = parser.parse_known_args()
         megatron_config = json.loads(args_parsed.megatron_config)
         if overwrite_values is not None:
             megatron_config.update(overwrite_values)
