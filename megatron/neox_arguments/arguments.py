@@ -394,6 +394,10 @@ class NeoXArgs(*BASE_CLASSES):
                 args_list.extend(
                     self.convert_key_value_to_command_line_arg(key, configured_value)
                 )
+        if 'DLTS_HOSTFILE' in os.environ:
+            args_list.extend(
+                self.convert_key_value_to_command_line_arg("hostfile", os.environ['DLTS_HOSTFILE'])
+            )
 
         if 'DLTS_HOSTFILE' in os.environ:
             args_list.extend(
@@ -556,6 +560,12 @@ class NeoXArgs(*BASE_CLASSES):
             from deepspeed.utils.distributed import mpi_discovery
 
             mpi_discovery()
+        
+        # TODO: Should there just be an argument / attribute like self.deepspeed_mpi for this block?
+        if os.getenv("SLURM_PROCID") is not None:
+            os.environ["LOCAL_RANK"] = os.environ["SLURM_LOCALID"]
+            os.environ["RANK"] = os.environ["SLURM_PROCID"]
+            os.environ["WORLD_SIZE"] = os.environ["SLURM_NTASKS"]
 
         self.update_value("local_rank", int(os.getenv("LOCAL_RANK", "0")))
         self.update_value("rank", int(os.getenv("RANK", "0")))
