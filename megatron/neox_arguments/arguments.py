@@ -7,6 +7,7 @@ import copy
 import torch
 import argparse
 import shutil
+import sys
 
 from dataclasses import dataclass
 from typing import List, Dict
@@ -79,6 +80,7 @@ NEOX_ARG_CLASSES = [i for i in BASE_CLASSES if i not in DEEPSPEED_ARG_CLASSES]
 
 if "DLTS_HOSTFILE" in os.environ:
     DLTS_HOSTFILE = os.environ["DLTS_HOSTFILE"]
+    print(f'Succesfully set hostfile to {DLTS_HOSTFILE}')
 
 
 @dataclass
@@ -362,8 +364,9 @@ class NeoXArgs(*BASE_CLASSES):
             default=None,
             help="json dict dumped as string in NeoXArgs.get_deepspeed_main_args()",
         )
-
-        args_parsed, _ = parser.parse_known_args()
+        args_parsed, not_parsed  = parser.parse_known_args()
+        print(f'Parsed arguments: {args_parsed.megatron_config}')
+        print(f'Not Parsed arguments: {not_parsed}')
         megatron_config = json.loads(args_parsed.megatron_config)
         if overwrite_values is not None:
             megatron_config.update(overwrite_values)
@@ -391,6 +394,19 @@ class NeoXArgs(*BASE_CLASSES):
                 args_list.extend(
                     self.convert_key_value_to_command_line_arg(key, configured_value)
                 )
+
+        if 'DLTS_HOSTFILE' in os.environ:
+            args_list.extend(
+                self.convert_key_value_to_command_line_arg("hostfile", os.environ['DLTS_HOSTFILE'])
+            )
+            args_list.extend(
+                self.convert_key_value_to_command_line_arg("no_ssh_check", True)
+            )
+
+        if 'MASTER_ADDR' in os.environ:
+            args_list.extend(
+                self.convert_key_value_to_command_line_arg("master_addr", os.environ['MASTER_ADDR'])
+            )
 
         if (
             "--include" in args_list or "--exclude" in args_list
